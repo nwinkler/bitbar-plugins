@@ -25,6 +25,8 @@ MAX_PING=1000
 SITES=(8.8.8.8) #Google DNS; SITES=(google.com youtube.com wikipedia.org github.com) using only one site is recommended for graph consistency
 SITE_INDEX=0
 PING_TIMES=
+PING_COUNT=2
+PING_TIMEOUT=2
 
 FILE_OUT="$HOME/Documents/PingTest/$(date +%Y%m%d).txt"
 
@@ -41,19 +43,19 @@ function colorize {
 
         echo "${COLORS[0]}"
 
-    elif [ "$1" -ge 600 ]; then
+    elif [ "$1" -ge $((MAX_PING*6/10)) ]; then
 
         echo "${COLORS[1]}"
 
-    elif [ "$1" -ge 400 ]; then
+    elif [ "$1" -ge $((MAX_PING*4/10)) ]; then
 
         echo "${COLORS[2]}"
 
-    elif [ "$1" -ge 200 ]; then
+    elif [ "$1" -ge $((MAX_PING*2/10)) ]; then
 
         echo "${COLORS[3]}"
 
-    elif [ "$1" -ge 100 ]; then
+    elif [ "$1" -ge $((MAX_PING*1/10)) ]; then
 
         echo "${COLORS[4]}"
 
@@ -67,15 +69,24 @@ function colorize {
 
 #Generate Output
 
-while [ $SITE_INDEX -lt ${#SITES[@]} ]; do
+RETRY=false
 
+while [ $SITE_INDEX -lt ${#SITES[@]} ]; do
     NEXT_SITE="${SITES[$SITE_INDEX]}"
-    NEXT_PING_TIME=$(ping -c 2 -n -q -t 2 "$NEXT_SITE" 2>/dev/null | awk -F '/' 'END {printf "%.0f\n", $5}')
+    NEXT_PING_TIME=$(ping -c "$PING_COUNT" -n -q -t "$PING_TIMEOUT" "$NEXT_SITE" 2>/dev/null | awk -F '/' 'END {printf "%.0f\n", $5}')
 
     if [ "$NEXT_PING_TIME" -eq 0 ]; then
 
         NEXT_PING_TIME=$MAX_PING
 
+        if [ "$RETRY" == "true" ] ; then
+            RETRY=false
+        else
+            RETRY=true
+
+            # Try one more time
+            continue
+        fi
     fi
 
     if [ -z "$PING_TIMES" ]; then
