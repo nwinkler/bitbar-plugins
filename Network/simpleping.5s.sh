@@ -28,7 +28,11 @@ PING_TIMES=
 PING_COUNT=2
 PING_TIMEOUT=2
 
-FILE_OUT="$HOME/Documents/PingTest/$(date +%Y%m%d).txt"
+# Make sure that the target folder exists
+FOLDER_OUT="$HOME/Documents/PingTest"
+mkdir -p "$FOLDER_OUT"
+
+FILE_OUT="$FOLDER_OUT/simpleping.log"
 
 #Uncomment if header row required in output file
 #if [ ! -f "$FILE_OUT" ]; then
@@ -122,7 +126,7 @@ while [ $SITE_INDEX -lt ${#SITES[@]} ]; do
 
     PING_TIME=${PING_TIMES[$SITE_INDEX]}
 
-    echo "$(date '+%d/%m/%Y %H:%M:%S'), ${SITES[$SITE_INDEX]}, $PING_TIME" >> "$FILE_OUT"
+    echo "$(date '+%Y-%m-%d %H:%M:%S'), ${SITES[$SITE_INDEX]}, $PING_TIME" >> "$FILE_OUT"
 
     if [ "$PING_TIME" -eq $MAX_PING ]; then
 
